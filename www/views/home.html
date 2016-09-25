@@ -1,17 +1,24 @@
 <ion-view class="home-view">
   <ion-nav-title>
-    <span>Facebook Login Example</span>
+    <span>Attraction</span>
   </ion-nav-title>
-  <ion-content>
-    <div class="row">
-      <div class="col">
-        <h3 class="welcome-message">Hi {{user.name}}</h3>
-        <p class="welcome-message">You have logged in with Facebook</p>
-        <img ng-src="{{user.picture}}">
-        <a class="button button-assertive button-block button-outline" ng-click="showLogOutMenu()">
-          Log Out
-        </a>
-      </div>
-    </div>
+  <ion-nav-buttons side="right">
+        <button class="button button-icon icon ion-camera" ng-click="cameraUpload()"></button>
+        <button class="button button-icon icon ion-images" ng-click="galleryUpload()"></button>
+  </ion-nav-buttons>
+    <ion-content class="has-header padding" ng-controller="MediaCtrl">
+      <h3 class="welcome-message">Hi {{user.name}}</h3>
+      <p class="welcome-message">You have logged in with Facebook</p>
+      <img ng-src="{{user.picture}}">
+      <br><br>
+		<div class="item item-divider">
+			<i class="ion-images"></i>
+			My Images
+		</div>
+		<a class="item item-list-detail">
+			<ion-scroll direction="x">
+        <img ng-repeat="image in images" ng-src="data:image/jpeg;base64,{{images[$index].image}}" ng-click="showImages($index)" class="image-list-thumb"/>
+			</ion-scroll>
+		</a>
   </ion-content>
 </ion-view>

@@ -1,6 +1,6 @@
-angular.module('controllers', [])
+angular.module('controllers', ['ngCordova','firebase','services'])
 
-.controller('WelcomeCtrl', function($scope, $state, $q, UserService, $ionicLoading) {
+.controller('WelcomeCtrl', function($scope, $state, $q, UserService, $ionicLoading,sharedVariables) {
 
   //This is the success callback from the login method
   var fbLoginSuccess = function(response) {
@@ -10,6 +10,20 @@ angular.module('controllers', [])
     }
 
     var authResponse = response.authResponse;
+
+    // Build Firebase credential with the Facebook access token.
+    var credential = firebase.auth.FacebookAuthProvider.credential(authResponse.accessToken);
+
+    // Sign in with credential from the Google user.
+    firebase.auth().signInWithCredential(credential).then(function(user) {
+      console.log("Sign In Success", user);
+      sharedVariables.setVariable(user);
+      // Merge prevUser and currentUser accounts and data
+      // ...
+    }, function(error) {
+      console.log("Sign In Error", error);
+    });
+
 
     getFacebookProfileInfo(authResponse)
     .then(function(profileInfo) {
@@ -114,35 +128,86 @@ angular.module('controllers', [])
 
 })
 
-.controller('HomeCtrl', function($scope, UserService, $ionicActionSheet, $state, $ionicLoading){
+.controller('HomeCtrl', function($scope, UserService, $ionicActionSheet, $state, $ionicLoading,$ionicHistory, $firebaseArray, $cordovaCamera,sharedVariables){
 
 	$scope.user = UserService.getUser();
 
-	$scope.showLogOutMenu = function() {
-		var hideSheet = $ionicActionSheet.show({
-			destructiveText: 'Logout',
-			titleText: 'Are you sure you want to logout? This app is awsome so I recommend you to stay.',
-			cancelText: 'Cancel',
-			cancel: function() {},
-			buttonClicked: function(index) {
-				return true;
-			},
-			destructiveButtonClicked: function(){
-				$ionicLoading.show({
-					template: 'Logging out...'
-				});
+  $ionicHistory.clearHistory();
 
-        //facebook logout
-        facebookConnectPlugin.logout(function(){
-          $ionicLoading.hide();
-          $state.go('welcome');
-        },
-        function(fail){
-          $ionicLoading.hide();
-        });
-			}
+  $scope.images = [];
+      var firebase_user = sharedVariables.getVariable();
+      var userReference = firebase.database().ref("users/" + firebase_user.uid);
+      var syncArray = $firebaseArray(userReference.child('images'));
+      $scope.images = syncArray;
+
+  $scope.cameraUpload = function() {
+      var options = {
+          quality : 75,
+          destinationType : Camera.DestinationType.DATA_URL,
+          sourceType : Camera.PictureSourceType.CAMERA,
+          allowEdit : true,
+          encodingType: Camera.EncodingType.JPEG,
+          popoverOptions: CameraPopoverOptions,
+          targetWidth: 500,
+          targetHeight: 500,
+          saveToPhotoAlbum: false
+      };
+      $cordovaCamera.getPicture(options).then(function(imageData) {
+          syncArray.$add({image: imageData}).then(function() {
+              alert("Image has been uploaded");
+          });
+      }, function(error) {
+          console.error(error);
+      });
+  }
+
+  $scope.galleryUpload = function() {
+      var options = {
+          quality : 75,
+          destinationType : Camera.DestinationType.DATA_URL,
+          sourceType : Camera.PictureSourceType.PHOTOLIBRARY,
+          allowEdit : true,
+          encodingType: Camera.EncodingType.JPEG,
+          popoverOptions: CameraPopoverOptions,
+          targetWidth: 500,
+          targetHeight: 500,
+          saveToPhotoAlbum: false
+      };
+      $cordovaCamera.getPicture(options).then(function(imageData) {
+          syncArray.$add({image: imageData}).then(function() {
+              alert("Image has been uploaded");
+          });
+      }, function(error) {
+          console.error(error);
+      });
+  }
+
+})
+
+.controller('MediaCtrl', function($scope, $ionicModal) {
+
+	$scope.showImages = function(index) {
+		$scope.activeSlide = index;
+		$scope.showModal('views/image-popover.html');
+	}
+
+	$scope.showModal = function(templateUrl) {
+		$ionicModal.fromTemplateUrl(templateUrl, {
+			scope: $scope,
+			animation: 'slide-in-up'
+		}).then(function(modal) {
+			$scope.modal = modal;
+			$scope.modal.show();
 		});
+	}
+
+	// Close the modal
+	$scope.closeModal = function() {
+		$scope.modal.hide();
+		$scope.modal.remove()
 	};
 })
+
+
 
 ;

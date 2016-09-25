@@ -16,4 +16,18 @@ angular.module('services', [])
     getUser: getUser,
     setUser: setUser
   };
-});
+})
+
+.service('sharedVariables', function () {
+        var variable = "";
+
+        return {
+            getVariable: function () {
+                return variable;
+            },
+            setVariable: function(value) {
+                variable = value;
+            }
+        };
+    })
+    ;
