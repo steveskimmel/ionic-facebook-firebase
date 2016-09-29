@@ -1,0 +1,1 @@
+This is an Ionic project that is integrated with my Firebase account as well as my Facebook app. It makes use of native Facebook Oauth authentication and then implements the Firebase sign-in-with-credential function to authenticate a Facebook user with Firebase. It then includes some other nifty functionality with regard to uploading/viewing images to/from Firebase.  
